@@ -82,9 +82,15 @@ func AllowedOrigins() (origins []string) {
 	return origins
 }
 
-// Models returns the path to the models directory. Models directory can be configured via the OLLAMA_MODELS environment variable.
-// Default is $HOME/.ollama/models
+// Models returns the path to the models directory.
+// Can be configured via HUSHBEAM_OLLAMA_MODELS or OLLAMA_MODELS environment variables.
+// Default is ~/Library/Application Support/app.reckr.hushbeam.macos/Models
 func Models() string {
+	// Check HushBeam-specific env var first
+	if s := Var("HUSHBEAM_OLLAMA_MODELS"); s != "" {
+		return s
+	}
+	// Fall back to standard OLLAMA_MODELS for compatibility
 	if s := Var("OLLAMA_MODELS"); s != "" {
 		return s
 	}
@@ -94,7 +100,7 @@ func Models() string {
 		panic(err)
 	}
 
-	return filepath.Join(home, ".ollama", "models")
+	return filepath.Join(home, "Library", "Application Support", "app.reckr.hushbeam.macos", "Models")
 }
 
 // KeepAlive returns the duration that models stay loaded in memory. KeepAlive can be configured via the OLLAMA_KEEP_ALIVE environment variable.

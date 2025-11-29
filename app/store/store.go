@@ -183,11 +183,11 @@ type Store struct {
 var defaultDBPath = func() string {
 	switch runtime.GOOS {
 	case "windows":
-		return filepath.Join(os.Getenv("LOCALAPPDATA"), "Ollama", "db.sqlite")
+		return filepath.Join(os.Getenv("LOCALAPPDATA"), "HushBeam", "db.sqlite")
 	case "darwin":
-		return filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "Ollama", "db.sqlite")
+		return filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "app.reckr.hushbeam.macos", "db.sqlite")
 	default:
-		return filepath.Join(os.Getenv("HOME"), ".ollama", "db.sqlite")
+		return filepath.Join(os.Getenv("HOME"), ".hushbeam-ollama", "db.sqlite")
 	}
 }()
 
@@ -195,11 +195,11 @@ var defaultDBPath = func() string {
 var legacyConfigPath = func() string {
 	switch runtime.GOOS {
 	case "windows":
-		return filepath.Join(os.Getenv("LOCALAPPDATA"), "Ollama", "config.json")
+		return filepath.Join(os.Getenv("LOCALAPPDATA"), "HushBeam", "config.json")
 	case "darwin":
-		return filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "Ollama", "config.json")
+		return filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "app.reckr.hushbeam.macos", "config.json")
 	default:
-		return filepath.Join(os.Getenv("HOME"), ".ollama", "config.json")
+		return filepath.Join(os.Getenv("HOME"), ".hushbeam-ollama", "config.json")
 	}
 }()
 

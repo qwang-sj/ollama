@@ -1,7 +1,10 @@
 #!/bin/sh
 
-# Note: 
-#  While testing, if you double-click on the Ollama.app 
+# HushBeam-Ollama macOS Build Script
+# Based on Ollama build script, customized for HushBeam integration
+#
+# Note:
+#  While testing, if you double-click on the HushBeam-Ollama.app
 #  some state is left on MacOS and subsequent attempts
 #  to build again will fail with:
 #
@@ -11,7 +14,7 @@
 #
 #    VOL_NAME="$(date)" ./scripts/build_darwin.sh
 #
-VOL_NAME=${VOL_NAME:-"Ollama"}
+VOL_NAME=${VOL_NAME:-"HushBeam-Ollama"}
 export VERSION=${VERSION:-$(git describe --tags --first-parent --abbrev=7 --long --dirty --always | sed -e "s/^v//g")}
 export GOFLAGS="'-ldflags=-w -s \"-X=github.com/ollama/ollama/version.Version=${VERSION#v}\" \"-X=github.com/ollama/ollama/server.mode=release\"'"
 export CGO_CFLAGS="-mmacosx-version-min=14.0"
@@ -43,7 +46,8 @@ _build_darwin() {
     for ARCH in $ARCHS; do
         status "Building darwin $ARCH"
         INSTALL_PREFIX=dist/darwin-$ARCH/
-        GOOS=darwin GOARCH=$ARCH CGO_ENABLED=1 go build -o $INSTALL_PREFIX .
+        # Output binary as hushbeam-ollama
+        GOOS=darwin GOARCH=$ARCH CGO_ENABLED=1 go build -o ${INSTALL_PREFIX}hushbeam-ollama .
 
         if [ "$ARCH" = "amd64" ]; then
             status "Building darwin $ARCH dynamic backends"
@@ -60,25 +64,25 @@ _build_darwin() {
 _sign_darwin() {
     status "Creating universal binary..."
     mkdir -p dist/darwin
-    lipo -create -output dist/darwin/ollama dist/darwin-*/ollama
-    chmod +x dist/darwin/ollama
+    lipo -create -output dist/darwin/hushbeam-ollama dist/darwin-*/hushbeam-ollama
+    chmod +x dist/darwin/hushbeam-ollama
 
     if [ -n "$APPLE_IDENTITY" ]; then
-        for F in dist/darwin/ollama dist/darwin-amd64/lib/ollama/*; do
-            codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier ai.ollama.ollama --options=runtime $F
+        for F in dist/darwin/hushbeam-ollama dist/darwin-amd64/lib/ollama/*; do
+            codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier app.reckr.hushbeam.ollama --options=runtime $F
         done
 
         # create a temporary zip for notarization
         TEMP=$(mktemp -u).zip
-        ditto -c -k --keepParent dist/darwin/ollama "$TEMP"
+        ditto -c -k --keepParent dist/darwin/hushbeam-ollama "$TEMP"
         xcrun notarytool submit "$TEMP" --wait --timeout 10m --apple-id $APPLE_ID --password $APPLE_PASSWORD --team-id $APPLE_TEAM_ID
         rm -f "$TEMP"
     fi
 
     status "Creating universal tarball..."
-    tar -cf dist/ollama-darwin.tar --strip-components 2 dist/darwin/ollama
-    tar -rf dist/ollama-darwin.tar --strip-components 4 dist/darwin-amd64/lib/
-    gzip -9vc <dist/ollama-darwin.tar >dist/ollama-darwin.tgz
+    tar -cf dist/hushbeam-ollama-darwin.tar --strip-components 2 dist/darwin/hushbeam-ollama
+    tar -rf dist/hushbeam-ollama-darwin.tar --strip-components 4 dist/darwin-amd64/lib/
+    gzip -9vc <dist/hushbeam-ollama-darwin.tar >dist/hushbeam-ollama-darwin.tgz
 }
 
 _build_macapp() {
@@ -100,85 +104,85 @@ _build_macapp() {
     npm run build
     cd ../../..
 
-    # Build the Ollama.app bundle
-    rm -rf dist/Ollama.app
-    cp -a ./app/darwin/Ollama.app dist/Ollama.app
+    # Build the HushBeam-Ollama.app bundle
+    rm -rf dist/HushBeam-Ollama.app
+    cp -a ./app/darwin/HushBeam-Ollama.app dist/HushBeam-Ollama.app
 
     # update the modified date of the app bundle to now
-    touch dist/Ollama.app
+    touch dist/HushBeam-Ollama.app
 
     go clean -cache
     GOARCH=amd64 CGO_ENABLED=1 GOOS=darwin go build -o dist/darwin-app-amd64 -ldflags="-s -w -X=github.com/ollama/ollama/app/version.Version=${VERSION}" ./app/cmd/app
     GOARCH=arm64 CGO_ENABLED=1 GOOS=darwin go build -o dist/darwin-app-arm64 -ldflags="-s -w -X=github.com/ollama/ollama/app/version.Version=${VERSION}" ./app/cmd/app
-    mkdir -p dist/Ollama.app/Contents/MacOS
-    lipo -create -output dist/Ollama.app/Contents/MacOS/Ollama dist/darwin-app-amd64 dist/darwin-app-arm64
+    mkdir -p dist/HushBeam-Ollama.app/Contents/MacOS
+    lipo -create -output dist/HushBeam-Ollama.app/Contents/MacOS/HushBeam-Ollama dist/darwin-app-amd64 dist/darwin-app-arm64
     rm -f dist/darwin-app-amd64 dist/darwin-app-arm64
 
     # Create a mock Squirrel.framework bundle
-    mkdir -p dist/Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/
-    cp -a dist/Ollama.app/Contents/MacOS/Ollama dist/Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Squirrel
-    ln -s ../Squirrel dist/Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt
-    cp -a ./app/cmd/squirrel/Info.plist dist/Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/Info.plist
-    ln -s A dist/Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/Current
-    ln -s Versions/Current/Resources dist/Ollama.app/Contents/Frameworks/Squirrel.framework/Resources
-    ln -s Versions/Current/Squirrel dist/Ollama.app/Contents/Frameworks/Squirrel.framework/Squirrel
+    mkdir -p dist/HushBeam-Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/
+    cp -a dist/HushBeam-Ollama.app/Contents/MacOS/HushBeam-Ollama dist/HushBeam-Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Squirrel
+    ln -s ../Squirrel dist/HushBeam-Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt
+    cp -a ./app/cmd/squirrel/Info.plist dist/HushBeam-Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/Info.plist
+    ln -s A dist/HushBeam-Ollama.app/Contents/Frameworks/Squirrel.framework/Versions/Current
+    ln -s Versions/Current/Resources dist/HushBeam-Ollama.app/Contents/Frameworks/Squirrel.framework/Resources
+    ln -s Versions/Current/Squirrel dist/HushBeam-Ollama.app/Contents/Frameworks/Squirrel.framework/Squirrel
 
     # Update the version in the Info.plist
-    plutil -replace CFBundleShortVersionString -string "$VERSION" dist/Ollama.app/Contents/Info.plist
-    plutil -replace CFBundleVersion -string "$VERSION" dist/Ollama.app/Contents/Info.plist
+    plutil -replace CFBundleShortVersionString -string "$VERSION" dist/HushBeam-Ollama.app/Contents/Info.plist
+    plutil -replace CFBundleVersion -string "$VERSION" dist/HushBeam-Ollama.app/Contents/Info.plist
 
-    # Setup the ollama binaries
-    mkdir -p dist/Ollama.app/Contents/Resources
+    # Setup the hushbeam-ollama binaries
+    mkdir -p dist/HushBeam-Ollama.app/Contents/Resources
     if [ -d dist/darwin-amd64 ]; then
-        lipo -create -output dist/Ollama.app/Contents/Resources/ollama dist/darwin-amd64/ollama dist/darwin-arm64/ollama
-        cp dist/darwin-amd64/lib/ollama/*.so dist/darwin-amd64/lib/ollama/*.dylib dist/Ollama.app/Contents/Resources/
+        lipo -create -output dist/HushBeam-Ollama.app/Contents/Resources/hushbeam-ollama dist/darwin-amd64/hushbeam-ollama dist/darwin-arm64/hushbeam-ollama
+        cp dist/darwin-amd64/lib/ollama/*.so dist/darwin-amd64/lib/ollama/*.dylib dist/HushBeam-Ollama.app/Contents/Resources/ 2>/dev/null || true
     else
-        cp -a dist/darwin/ollama dist/Ollama.app/Contents/Resources/ollama
-        cp dist/darwin/*.so dist/darwin/*.dylib dist/Ollama.app/Contents/Resources/
+        cp -a dist/darwin/hushbeam-ollama dist/HushBeam-Ollama.app/Contents/Resources/hushbeam-ollama
+        cp dist/darwin/*.so dist/darwin/*.dylib dist/HushBeam-Ollama.app/Contents/Resources/ 2>/dev/null || true
     fi
-    chmod a+x dist/Ollama.app/Contents/Resources/ollama
+    chmod a+x dist/HushBeam-Ollama.app/Contents/Resources/hushbeam-ollama
 
     # Sign
     if [ -n "$APPLE_IDENTITY" ]; then
-        codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier ai.ollama.ollama --options=runtime dist/Ollama.app/Contents/Resources/ollama
-        for lib in dist/Ollama.app/Contents/Resources/*.so dist/Ollama.app/Contents/Resources/*.dylib ; do
-            codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier ai.ollama.ollama --options=runtime ${lib}
+        codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier app.reckr.hushbeam.ollama --options=runtime dist/HushBeam-Ollama.app/Contents/Resources/hushbeam-ollama
+        for lib in dist/HushBeam-Ollama.app/Contents/Resources/*.so dist/HushBeam-Ollama.app/Contents/Resources/*.dylib ; do
+            codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier app.reckr.hushbeam.ollama --options=runtime ${lib}
         done
-        codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier com.electron.ollama --deep --options=runtime dist/Ollama.app
+        codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier app.reckr.hushbeam.ollama --deep --options=runtime dist/HushBeam-Ollama.app
     fi
 
-    rm -f dist/Ollama-darwin.zip
-    ditto -c -k --keepParent dist/Ollama.app dist/Ollama-darwin.zip
-    (cd dist/Ollama.app/Contents/Resources/; tar -cf - ollama *.so *.dylib) | gzip -9vc > dist/ollama-darwin.tgz
+    rm -f dist/HushBeam-Ollama-darwin.zip
+    ditto -c -k --keepParent dist/HushBeam-Ollama.app dist/HushBeam-Ollama-darwin.zip
+    (cd dist/HushBeam-Ollama.app/Contents/Resources/; tar -cf - hushbeam-ollama *.so *.dylib 2>/dev/null) | gzip -9vc > dist/hushbeam-ollama-darwin.tgz
 
     # Notarize and Staple
     if [ -n "$APPLE_IDENTITY" ]; then
-        $(xcrun -f notarytool) submit dist/Ollama-darwin.zip --wait --timeout 10m --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID"
-        rm -f dist/Ollama-darwin.zip
-        $(xcrun -f stapler) staple dist/Ollama.app
-        ditto -c -k --keepParent dist/Ollama.app dist/Ollama-darwin.zip
+        $(xcrun -f notarytool) submit dist/HushBeam-Ollama-darwin.zip --wait --timeout 10m --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID"
+        rm -f dist/HushBeam-Ollama-darwin.zip
+        $(xcrun -f stapler) staple dist/HushBeam-Ollama.app
+        ditto -c -k --keepParent dist/HushBeam-Ollama.app dist/HushBeam-Ollama-darwin.zip
 
-        rm -f dist/Ollama.dmg
+        rm -f dist/HushBeam-Ollama.dmg
 
         (cd dist && ../scripts/create-dmg.sh \
             --volname "${VOL_NAME}" \
-            --volicon ../app/darwin/Ollama.app/Contents/Resources/icon.icns \
+            --volicon ../app/darwin/HushBeam-Ollama.app/Contents/Resources/icon.icns \
             --background ../app/assets/background.png \
             --window-pos 200 120 \
             --window-size 800 400 \
             --icon-size 128 \
-            --icon "Ollama.app" 200 190 \
-            --hide-extension "Ollama.app" \
+            --icon "HushBeam-Ollama.app" 200 190 \
+            --hide-extension "HushBeam-Ollama.app" \
             --app-drop-link 600 190 \
             --text-size 12 \
-            "Ollama.dmg" \
-            "Ollama.app" \
+            "HushBeam-Ollama.dmg" \
+            "HushBeam-Ollama.app" \
         ; )
         rm -f dist/rw*.dmg
 
-        codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier ai.ollama.ollama --options=runtime dist/Ollama.dmg
-        $(xcrun -f notarytool) submit dist/Ollama.dmg --wait --timeout 10m --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID"
-        $(xcrun -f stapler) staple dist/Ollama.dmg
+        codesign -f --timestamp -s "$APPLE_IDENTITY" --identifier app.reckr.hushbeam.ollama --options=runtime dist/HushBeam-Ollama.dmg
+        $(xcrun -f notarytool) submit dist/HushBeam-Ollama.dmg --wait --timeout 10m --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID"
+        $(xcrun -f stapler) staple dist/HushBeam-Ollama.dmg
     else
         echo "WARNING: Code signing disabled, this bundle will not work for upgrade testing"
     fi

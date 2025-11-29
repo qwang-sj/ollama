@@ -1588,8 +1588,8 @@ func initializeKeypair() error {
 		return err
 	}
 
-	privKeyPath := filepath.Join(home, ".ollama", "id_ed25519")
-	pubKeyPath := filepath.Join(home, ".ollama", "id_ed25519.pub")
+	privKeyPath := filepath.Join(home, "Library", "Application Support", "app.reckr.hushbeam.macos", "id_ed25519")
+	pubKeyPath := filepath.Join(home, "Library", "Application Support", "app.reckr.hushbeam.macos", "id_ed25519.pub")
 
 	_, err = os.Stat(privKeyPath)
 	if os.IsNotExist(err) {
@@ -1688,8 +1688,8 @@ func NewCLI() *cobra.Command {
 	}
 
 	rootCmd := &cobra.Command{
-		Use:           "ollama",
-		Short:         "Large language model runner",
+		Use:           "hushbeam-ollama",
+		Short:         "HushBeam LLM server (based on Ollama)",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		CompletionOptions: cobra.CompletionOptions{

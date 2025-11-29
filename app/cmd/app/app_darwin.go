@@ -24,7 +24,7 @@ import (
 
 var ollamaPath = func() string {
 	if updater.BundlePath != "" {
-		return filepath.Join(updater.BundlePath, "Contents", "Resources", "ollama")
+		return filepath.Join(updater.BundlePath, "Contents", "Resources", "hushbeam-ollama")
 	}
 
 	pwd, err := os.Getwd()
@@ -32,13 +32,13 @@ var ollamaPath = func() string {
 		slog.Warn("failed to get pwd", "error", err)
 		return ""
 	}
-	return filepath.Join(pwd, "ollama")
+	return filepath.Join(pwd, "hushbeam-ollama")
 }()
 
 var (
 	isApp           = updater.BundlePath != ""
-	appLogPath      = filepath.Join(os.Getenv("HOME"), ".ollama", "logs", "app.log")
-	launchAgentPath = filepath.Join(os.Getenv("HOME"), "Library", "LaunchAgents", "com.ollama.ollama.plist")
+	appLogPath      = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "app.reckr.hushbeam.macos", "logs", "app.log")
+	launchAgentPath = filepath.Join(os.Getenv("HOME"), "Library", "LaunchAgents", "app.reckr.hushbeam.ollama.plist")
 )
 
 // TODO(jmorganca): pre-create the window and pass
@@ -140,7 +140,7 @@ func installSymlink() {
 	defer C.free(unsafe.Pointer(cliPath))
 
 	// Check the users path first
-	cmd, _ := exec.LookPath("ollama")
+	cmd, _ := exec.LookPath("hushbeam-ollama")
 	if cmd != "" {
 		resolved, err := os.Readlink(cmd)
 		if err == nil {
@@ -152,7 +152,7 @@ func installSymlink() {
 			resolved = cmd
 		}
 		if resolved == ollamaPath {
-			slog.Info("ollama already in users PATH", "cli", cmd)
+			slog.Info("hushbeam-ollama already in users PATH", "cli", cmd)
 			return
 		}
 	}

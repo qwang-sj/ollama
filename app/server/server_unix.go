@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	pidFile       = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "Ollama", "ollama.pid")
-	serverLogPath = filepath.Join(os.Getenv("HOME"), ".ollama", "logs", "server.log")
+	pidFile       = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "app.reckr.hushbeam.macos", "hushbeam-ollama.pid")
+	serverLogPath = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "app.reckr.hushbeam.macos", "logs", "server.log")
 )
 
 func commandContext(ctx context.Context, name string, arg ...string) *exec.Cmd {
@@ -46,15 +46,15 @@ func terminated(pid int) (bool, error) {
 	return false, nil
 }
 
-// reapServers kills all ollama processes except our own
+// reapServers kills all hushbeam-ollama processes except our own
 func reapServers() error {
 	// Get our own PID to avoid killing ourselves
 	currentPID := os.Getpid()
 
-	// Use pkill to kill ollama processes
+	// Use pkill to kill hushbeam-ollama processes
 	// -x matches the whole command name exactly
 	// We'll get the list first, then kill selectively
-	cmd := exec.Command("pgrep", "-x", "ollama")
+	cmd := exec.Command("pgrep", "-x", "hushbeam-ollama")
 	output, err := cmd.Output()
 	if err != nil {
 		// No ollama processes found

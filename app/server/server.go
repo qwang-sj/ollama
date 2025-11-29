@@ -42,7 +42,7 @@ type InferenceCompute struct {
 }
 
 func New(s *store.Store, devMode bool) *Server {
-	p := resolvePath("ollama")
+	p := resolvePath("hushbeam-ollama")
 	return &Server{store: s, bin: p, dev: devMode}
 }
 
