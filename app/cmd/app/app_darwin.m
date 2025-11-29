@@ -22,7 +22,7 @@ bool firstTimeRun,startHidden; // Set in run before initialization
 
 - (void)application:(NSApplication *)application openURLs:(NSArray<NSURL *> *)urls {
     for (NSURL *url in urls) {
-        if ([url.scheme isEqualToString:@"ollama"]) {
+        if ([url.scheme isEqualToString:@"hushbeam-ollama"]) {
             NSString *path = url.path;
 
             if (path && ([path isEqualToString:@"/connect"] || [url.host isEqualToString:@"connect"])) {
@@ -351,10 +351,10 @@ bool firstTimeRun,startHidden; // Set in run before initialization
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (void)registerSelfAsLoginItem:(BOOL)firstTimeRun {
     appLogInfo(@"using v13+ SMAppService for login registration");
-    // Maps to the file Ollama.app/Contents/Library/LaunchAgents/com.ollama.ollama.plist
-    SMAppService* service = [SMAppService agentServiceWithPlistName:@"com.ollama.ollama.plist"];
+    // Maps to the file HushBeam-Ollama.app/Contents/Library/LaunchAgents/app.reckr.hushbeam.ollama.plist
+    SMAppService* service = [SMAppService agentServiceWithPlistName:@"app.reckr.hushbeam.ollama.plist"];
     if (!service) {
-        appLogInfo(@"SMAppService failed to find service for com.ollama.ollama.plist");
+        appLogInfo(@"SMAppService failed to find service for app.reckr.hushbeam.ollama.plist");
         return;
     }
     SMAppServiceStatus status = [service status];
@@ -418,7 +418,7 @@ bool firstTimeRun,startHidden; // Set in run before initialization
             CFStringRef displayName = LSSharedFileListItemCopyDisplayName((LSSharedFileListItemRef)item);
             if (displayName) {
                 NSString *name = (__bridge NSString *)displayName;
-                if ([name hasPrefix:@"Ollama"]) {
+                if ([name hasPrefix:@"HushBeam-Ollama"]) {
                     LSSharedFileListItemRemove(loginItems, (LSSharedFileListItemRef)item);
                     appLogInfo([NSString stringWithFormat:@"removing dangling login item %@", displayName]);
                 }
@@ -629,8 +629,7 @@ void killOtherInstances() {
         }
         
         if ([bundleId isEqualToString:[[NSBundle mainBundle] bundleIdentifier]] ||
-            [bundleId isEqualToString:@"ai.ollama.ollama"] ||
-            [bundleId isEqualToString:@"com.electron.ollama"]) {
+            [bundleId isEqualToString:@"app.reckr.hushbeam.ollama"]) {
             
             pid_t pid = app.processIdentifier;
             if (pid != myPid && pid > 0) {
@@ -700,7 +699,7 @@ bool moveToApplications(const char *src) {
 }
 
 AuthorizationRef getSymlinkAuthorization() {
-    return getAuthorization(@"Ollama is trying to install its command line "
+    return getAuthorization(@"HushBeam-Ollama is trying to install its command line "
                             @"interface (CLI) tool.",
                             @"symlink");
 }
@@ -901,7 +900,7 @@ void launchApp(const char *appPath) {
 }
 
 int installSymlink(const char *cliPath) {
-    NSString *linkPath = @"/usr/local/bin/ollama";
+    NSString *linkPath = @"/usr/local/bin/hushbeam-ollama";
     NSString *dirPath = @"/usr/local/bin";
     NSError *error = nil;
 
@@ -950,7 +949,7 @@ int installSymlink(const char *cliPath) {
     // Create the symlink using the same authorization
     const char *toolPath = "/bin/ln";
     const char *args[] = {"-s", "-F", [resPath UTF8String],
-                          "/usr/local/bin/ollama", NULL};
+                          "/usr/local/bin/hushbeam-ollama", NULL};
     FILE *pipe = NULL;
 
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
